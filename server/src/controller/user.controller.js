@@ -6,7 +6,7 @@ const registerUser = async (req, res) => {
     try {
         const {username, password, email} = req.body;
 
-        if(!username.trim() &&  !email.trim())
+        if(!username &&  !email)
         {
             return res.status(400).json({
                 status: 400,
@@ -22,7 +22,7 @@ const registerUser = async (req, res) => {
             })
         }
 
-        if(username.trim().length < 6)
+        if(username.length < 6)
         {
             return res.status(400).json({
                 status: 400,
@@ -31,7 +31,7 @@ const registerUser = async (req, res) => {
         }
 
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if(!emailRegex.test(email.trim()))
+        if(!emailRegex.test(email))
         {
             return res.status(400).json({
                 status: 400,
@@ -58,9 +58,9 @@ const registerUser = async (req, res) => {
         }
 
         const user = await User.create({
-            username: username.trim(),
+            username: username,
             password: hashPassword,
-            email: email.trim()
+            email: email
         })
 
         if(!user)
@@ -75,8 +75,8 @@ const registerUser = async (req, res) => {
             status: 200,
             message: "Registration successful.",
             user: {
-                username: user.username.trim(),
-                email: user.email.trim(),
+                username: user.username,
+                email: user.email,
             },
         })
 
@@ -232,17 +232,17 @@ const updatePassword = async(req, res) => {
     try {
         const {username, email, password} = req.body;
 
-        if(!username && !email)
+        if(!username || !email)
         {
             return res.status(400).json({
                 status: 400,
-                message: "username or email is required"
+                message: "Invalid credentials"
             })
         }
 
         if(!password || password.length < 8)
         {
-            return rs.status(400).json({
+            return res.status(400).json({
                 status: 400,
                 message: "Password must be 8 character long"
             })
@@ -250,20 +250,16 @@ const updatePassword = async(req, res) => {
 
         const hashPassword = await bcrypt.hash(password, 10);
 
-        if(!hashPassword)
-        {
-            return res.status(500).json({
-                status: 500,
-                message: "An unexpected error has occured"
-            })
-        }
-
         const user = await User.findOneAndUpdate(
             {
-                $or: [{username}, {email}],
+                $and: [{username}, {email}],
             },
             {
-                $unset: {refreshToken: ""}
+                $unset: {refreshToken: ""},
+                $set: {password: hashPassword}
+            },
+            {
+                new: true
             }
         )
 
@@ -271,36 +267,46 @@ const updatePassword = async(req, res) => {
         {
             return res.status(404).json({
                 status: 404,
-                message: "username or email does not exists"
+                message: "Invalid credentials"
             })
         }
-
-        user.password = hashPassword
         
         return res.status(200).json({
             status: 200,
             message: "Password successfully changed",
-            user: {
-                username: user.username,
-                email: user.email
-            }
         })
 
     } catch (err) {
-        console.log(err);
         
         return res.status(500).json({
             status: 500,
-            message: "internal server error"
+            message: "Internal server error"
         })
     }
 }
 
+const deleteUser = async(req, res) => {
+    try {
+        const userId = req.user._id;
 
+        await User.deleteOne(userId);
+
+        return res.status(200).json({
+            status: 200,
+            message: "User deleted successfully"
+        })
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: "Internal server error"
+        })
+    }
+}
 
 export {
     registerUser,
     loginUser,
     logoutUser,
-    updatePassword
+    updatePassword,
+    deleteUser
 }

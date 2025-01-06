@@ -8,15 +8,14 @@ const messageSchema = new Schema(
             required: true,
             trim: true
         },
-        receiverId: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true
-        },
         senderId: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true
+        },
+        charRoomId: {
+            type: Schema.Types.ObjectId,
+            ref: "ChatRoom"
         },
         isRead: {
             type: Boolean,

@@ -3,15 +3,14 @@ import { Schema } from "mongoose";
 
 const chatRoomSchema = new Schema(
     {
-        chatname: {
+        chatRoomName: {
             type: String,
             required: true,
             trim: true,
         },
         participants: [{
             type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true
+            ref: "User"
         }],
         owner: {
             type: Schema.Types.ObjectId,
