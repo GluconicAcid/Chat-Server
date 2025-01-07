@@ -81,11 +81,10 @@ const createChatRoom = async (req, res) => {
 }
 
 const addParticipants = async (req, res) => {
-
-    //add check for participants that are already in the chat room
     try {
         const {participants} = req.body
         const {chatRoomId} = req.params
+        
 
         if(!participants)
         {
@@ -108,6 +107,20 @@ const addParticipants = async (req, res) => {
         for(let i = 0; i < participants.length; i++)
         {
             const isParticipantPresent = await User.findOne({username: participants[i]}).select("-password -refreshToken")
+            const participantInChatRoom = await ChatRoom.findOne(
+                {participants: { $elemMatch: { $eq: isParticipantPresent._id }}}
+            )
+
+            if(participantInChatRoom)
+            {
+                return res.status(400).json({
+                    status: 400,
+                    message: "User already in chat room",
+                    user: {
+                        username: participants[i]
+                    }
+                })
+            }
 
             if(!isParticipantPresent)
             {
@@ -119,8 +132,8 @@ const addParticipants = async (req, res) => {
                     }
                 })
             }
-
-            participantsId.push(participants[i]._id);
+            
+            participantsId.push(isParticipantPresent._id);
         }
 
         const chatRoom = await ChatRoom.findByIdAndUpdate(
@@ -155,7 +168,59 @@ const addParticipants = async (req, res) => {
     }
 }
 
+const removeParticipants = async (req, res) => {
+    try {
+        const {chatRoomId, participantId} = req.params
+
+        if(!chatRoomId)
+        {
+            return res.status(400).json({
+                status: 400,
+                message: "An unexpected error occured"
+            })
+        }
+
+        if(!participantId)
+        {
+            return res.status(400).json({
+                status: 400,
+                message: "No participant to remove from the chat room"
+            })
+        }
+
+        const chatRoom = await ChatRoom.findByIdAndUpdate(
+            chatRoomId,
+            {
+                $pull: {participants: participantId}
+            },
+            {
+                new: true
+            }
+        )
+
+        if(!chatRoom)
+        {
+            return res.status(404).json({
+                status: 404,
+                message: "Chat room does not exists"
+            })
+        }
+
+        return res.status(200).json({
+            status: 200,
+            message: "Participant removed"
+        })
+
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: "Internal server error"
+        })
+    }
+}
+
 export {
     createChatRoom,
-    addParticipants
+    addParticipants,
+    removeParticipants
 }
