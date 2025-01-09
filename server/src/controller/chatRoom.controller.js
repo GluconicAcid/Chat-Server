@@ -98,7 +98,7 @@ const addParticipants = async (req, res) => {
         {
             return res.status(400).json({
                 status: 400,
-                message: "Please provide chat room details"
+                message: "Chat room Id is required"
             })
         }
 
@@ -176,7 +176,7 @@ const removeParticipants = async (req, res) => {
         {
             return res.status(400).json({
                 status: 400,
-                message: "An unexpected error occured"
+                message: "Chat room Id is required"
             })
         }
 
@@ -219,8 +219,45 @@ const removeParticipants = async (req, res) => {
     }
 }
 
+const getParticipants = async (req, res) => {
+    try {
+        const {chatRoomId} = req.params;
+
+        if(!chatRoomId)
+        {
+            return res.status(400).json({
+                status: 400,
+                message: "Chat room Id is required"
+            })
+        }
+
+        const chatRoom = await ChatRoom.findById(chatRoomId).populate('participants', "-password -refreshToken");
+
+        if(!chatRoom)
+        {
+            return res.status(404).json({
+                status: 404,
+                message: "Chat room does not exist"
+            })
+        }
+
+        return res.status(200).json({
+            status: 200,
+            message: "Participants successfully fetched",
+            participants: chatRoom.participants
+        })
+
+    } catch (err) {
+        return res.status(500).json({
+            status: 500,
+            message: "Internal server error"
+        })
+    }
+}
+
 export {
     createChatRoom,
     addParticipants,
-    removeParticipants
+    removeParticipants,
+    getParticipants
 }

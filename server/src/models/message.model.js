@@ -3,7 +3,7 @@ import { Schema } from "mongoose";
 
 const messageSchema = new Schema(
     {
-        message: {
+        messageLine: {
             type: String,
             required: true,
             trim: true
@@ -11,9 +11,8 @@ const messageSchema = new Schema(
         senderId: {
             type: Schema.Types.ObjectId,
             ref: "User",
-            required: true
         },
-        charRoomId: {
+        chatRoomId: {
             type: Schema.Types.ObjectId,
             ref: "ChatRoom"
         },
@@ -27,6 +26,6 @@ const messageSchema = new Schema(
     }
 );
 
-messageSchema.index({senderId: 1, receiverId: 1});
+messageSchema.index({senderId: 1, charRoomId: 1});
 
 export const Message = mongoose.model("Message", messageSchema);

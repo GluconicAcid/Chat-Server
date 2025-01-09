@@ -11,8 +11,10 @@ app.use(cookieParser());
 
 import userRouter from "./src/routes/user.route.js";
 import chatRoomRouter from "./src/routes/chatRoom.route.js";
+import messageRouter from "./src/routes/message.route.js";
 
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/chatRoom', chatRoomRouter);
+app.use('/api/v1/message', messageRouter);
 
 export {app};
