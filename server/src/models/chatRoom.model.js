@@ -20,7 +20,11 @@ const chatRoomSchema = new Schema(
         isPrivate: {
             type: Boolean,
             default: false
-        }
+        },
+        messages: [{
+            type: String,
+            ref: "Message"
+        }]
     },
     {
         timestamps: true
